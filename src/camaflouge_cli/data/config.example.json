@@ -1,0 +1,8 @@
+{
+  "system_prompt": "Rewrite the user's text into clear standard English. Preserve meaning. Output only the rewritten text.",
+  "options": {
+    "temperature": 0.2,
+    "top_p": 0.9,
+    "num_predict": 512
+  }
+}
