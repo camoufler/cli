@@ -6,9 +6,9 @@ import logging
 import sys
 from typing import TYPE_CHECKING
 
-from camaflouge_cli.config import AppConfig, cpu_options
-from camaflouge_cli.models import ensure_small
-from camaflouge_cli.ollama_api import chat_standardize, pull_model
+from camoufler.config import AppConfig, cpu_options
+from camoufler.models import ensure_small
+from camoufler.ollama_api import chat_standardize, pull_model
 
 if TYPE_CHECKING:
     import argparse

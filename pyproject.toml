@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "camaflouge-cli"
+name = "camoufler"
 version = "0.1.0"
 description = "Local CPU-only LLM CLI to download small Ollama models and standardize English text."
 readme = "README.md"
@@ -26,13 +26,13 @@ dependencies = ["ollama>=0.4.0"]
 dev = ["pytest>=8.0", "build", "twine"]
 
 [project.scripts]
-camaflouge-cli = "camaflouge_cli.app:main"
+camoufler = "camoufler.app:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/camaflouge_cli"]
+packages = ["src/camoufler"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"src/camaflouge_cli/data/config.example.json" = "camaflouge_cli/data/config.example.json"
+"src/camoufler/data/config.example.json" = "camoufler/data/config.example.json"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

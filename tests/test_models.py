@@ -2,7 +2,7 @@
 
 import pytest
 
-from camaflouge_cli.models import ModelError, ensure_small, is_small_tag, parse_fq_name
+from camoufler.models import ModelError, ensure_small, is_small_tag, parse_fq_name
 
 
 @pytest.mark.parametrize(

@@ -1,7 +1,7 @@
 """Tests for CLI argument parsing."""
 
-from camaflouge_cli import __version__
-from camaflouge_cli.args import build_parser, parse_args
+from camoufler import __version__
+from camoufler.args import build_parser, parse_args
 
 
 def test_version_flag(capsys):
@@ -9,7 +9,7 @@ def test_version_flag(capsys):
         build_parser().parse_args(["--version"])
     assert exc.value.code == 0
     out = capsys.readouterr().out
-    assert f"camaflouge-cli {__version__}" in out
+    assert f"camoufler {__version__}" in out
 
 
 def test_parse_download_args():

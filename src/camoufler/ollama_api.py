@@ -7,7 +7,7 @@ from typing import Any
 
 import ollama
 
-logger = logging.getLogger("camaflouge-cli")
+logger = logging.getLogger("camoufler")
 
 
 def pull_model(model: str) -> None:

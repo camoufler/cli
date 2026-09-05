@@ -1,4 +1,4 @@
-from camaflouge_cli.app import main
+from camoufler.app import main
 
 if __name__ == "__main__":
     raise SystemExit(main())

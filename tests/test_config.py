@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from camaflouge_cli.config import ConfigError, cpu_options, load_config
+from camoufler.config import ConfigError, cpu_options, load_config
 
 
 def test_load_valid_config(tmp_path: Path):

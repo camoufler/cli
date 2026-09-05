@@ -19,4 +19,4 @@ def setup_logging(verbose: int) -> logging.Logger:
         stream=sys.stderr,
         force=True,
     )
-    return logging.getLogger("camaflouge-cli")
+    return logging.getLogger("camoufler")

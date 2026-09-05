@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import sys
 
-from camaflouge_cli import args, commands, config, logutil
-from camaflouge_cli.models import ModelError
+from camoufler import args, commands, config, logutil
+from camoufler.models import ModelError
 
 
 def main(argv: list[str] | None = None) -> int:

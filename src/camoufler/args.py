@@ -4,19 +4,19 @@ from __future__ import annotations
 
 import argparse
 
-from camaflouge_cli import __version__
+from camoufler import __version__
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build the camaflouge-cli argument parser."""
+    """Build the camoufler argument parser."""
     parser = argparse.ArgumentParser(
-        prog="camaflouge-cli",
+        prog="camoufler",
         description="Download small local Ollama models and standardize English text.",
     )
     parser.add_argument(
         "--version",
         action="version",
-        version=f"camaflouge-cli {__version__}",
+        version=f"camoufler {__version__}",
     )
     parser.add_argument(
         "-m",

@@ -1,4 +1,4 @@
-# camaflouge-cli
+# camoufler
 
 Local CPU-only CLI for small Ollama models. Download a model, then rewrite stdin text into standard English.
 
@@ -11,7 +11,7 @@ Local CPU-only CLI for small Ollama models. Download a model, then rewrite stdin
 
 ```text
 pip install -e .
-# or after publish: pip install camaflouge-cli
+# or after publish: pip install camoufler
 ```
 
 ## Usage
@@ -19,7 +19,7 @@ pip install -e .
 ### Check version
 
 ```text
-camaflouge-cli --version
+camoufler --version
 ```
 
 ### Download a model
@@ -27,8 +27,8 @@ camaflouge-cli --version
 Ollama must be running locally first.
 
 ```text
-camaflouge-cli -m qwen2.5:1.5b -f download --verbose 0
-camaflouge-cli -m qwen2.5:1.5b -f download --verbose 1
+camoufler -m qwen2.5:1.5b -f download --verbose 0
+camoufler -m qwen2.5:1.5b -f download --verbose 1
 ```
 
 ### Standardize text (stdin)
@@ -38,19 +38,19 @@ Text is read from **stdin**, not as a CLI argument.
 Linux/WSL:
 
 ```text
-echo "gonna head out later" | camaflouge-cli -m qwen2.5:1.5b -f standardize -c config/config.example.json
+echo "gonna head out later" | camoufler -m qwen2.5:1.5b -f standardize -c config/config.example.json
 ```
 
 PowerShell:
 
 ```text
-"gonna head out later" | camaflouge-cli -m qwen2.5:1.5b -f standardize -c config\config.example.json
+"gonna head out later" | camoufler -m qwen2.5:1.5b -f standardize -c config\config.example.json
 ```
 
 Interactive (type text, then end input with Ctrl+D on Linux or Ctrl+Z then Enter on Windows):
 
 ```text
-camaflouge-cli -m qwen2.5:1.5b -f standardize -c config/config.example.json
+camoufler -m qwen2.5:1.5b -f standardize -c config/config.example.json
 ```
 
 ### Example sentences
