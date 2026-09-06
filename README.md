@@ -47,11 +47,13 @@ PowerShell:
 "gonna head out later" | camoufler -m qwen2.5:1.5b -f standardize -c config\config.example.json
 ```
 
-Interactive (type text, then end input with Ctrl+D on Linux or Ctrl+Z then Enter on Windows):
+Interactive (type text+Enter, **Ctrl+C** to standardize , repeat for more input; **Ctrl+D** on Linux/WSL or **Ctrl+Z** then Enter on Windows to exit):
 
 ```text
 camoufler -m qwen2.5:1.5b -f standardize -c config/config.example.json
 ```
+
+Piped usage is unchanged: all stdin is read once, standardized once, then the program exits.
 
 ### Example sentences
 
