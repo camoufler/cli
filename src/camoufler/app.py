@@ -22,8 +22,6 @@ def main(argv: list[str] | None = None) -> int:
         cfg = config.load_config(ns.config, required=True)
         assert cfg is not None
         if sys.stdin.isatty():
-            if ns.verbose >= 1:
-                logger.info("Interactive: Ctrl+C to standardize, Ctrl+D to exit.")
             commands.cmd_standardize_interactive(ns, cfg, logger)
             return 0
         result = commands.cmd_standardize(ns, cfg, logger)

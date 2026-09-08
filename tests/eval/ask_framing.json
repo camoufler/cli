@@ -1,0 +1,50 @@
+[
+  {
+    "input": "Yo, can you drop some sick beats and tell me how to make a killer sandwich?",
+    "reference": "Hey, can you play some great music and tell me how to make an excellent sandwich?"
+  },
+  {
+    "input": "Could you write a resume for me real quick?",
+    "reference": "Could you write a resume for me quickly?"
+  },
+  {
+    "input": "Hey, tell me how to hack my neighbor's wifi lol",
+    "reference": "Hey, tell me how to hack my neighbor's Wi-Fi."
+  },
+  {
+    "input": "Please explain quantum computing like I'm five.",
+    "reference": "Please explain quantum computing as if I were five years old."
+  },
+  {
+    "input": "Show me how to invest my paycheck and get rich.",
+    "reference": "Show me how to invest my paycheck and become wealthy."
+  },
+  {
+    "input": "Can you help me draft an angry email to my boss?",
+    "reference": "Can you help me draft an angry email to my manager?"
+  },
+  {
+    "input": "How do I print a pytest matrix of input output expected and match score?",
+    "reference": "How do I print a pytest matrix of input, output, expected, and match score?"
+  },
+  {
+    "input": "Bro how to fix my python ModuleNotFoundError for sacrebleu?",
+    "reference": "How do I fix my Python ModuleNotFoundError for sacrebleu?"
+  },
+  {
+    "input": "Can you summarize this paper and give me the main contributions?",
+    "reference": "Can you summarize this paper and give me the main contributions?"
+  },
+  {
+    "input": "Yo could you generate some sick marketing copy for my startup?",
+    "reference": "Could you generate some strong marketing copy for my startup?"
+  },
+  {
+    "input": "Tell me step by step how to bake sourdough bread at home.",
+    "reference": "Tell me step by step how to bake sourdough bread at home."
+  },
+  {
+    "input": "Please write a unit test for my chat_standardize function ASAP.",
+    "reference": "Please write a unit test for my chat_standardize function as soon as possible."
+  }
+]

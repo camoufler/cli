@@ -1,0 +1,122 @@
+[
+  {
+    "input": "Yo, yesterday was lowkey wild. My main guy pulled up with some snacks that were totally bussin', and we just sat on the couch to veg out. Everyone was spilling the tea about some total drama, but honestly, it felt a bit mid. We didn't want to be extra about it, so we just laughed and relaxed.",
+    "reference": "Yesterday was quite lively. My main guy brought some snacks that were quite good, and we just sat on the couch to relax. Everyone was talking about some drama, but it felt a bit tame. We didn't want to be too dramatic, so we just laughed and relaxed."
+  },
+  {
+    "input": "That new cafe is lowkey fire. The lattes slap and the vibes are immaculate.",
+    "reference": "That new cafe is quite good. The lattes are excellent and the atmosphere is perfect."
+  },
+  {
+    "input": "I'm dead tired after work, so I'm gonna ghost the party tonight and just crash at home.",
+    "reference": "I am very tired after work, so I am going to skip the party tonight and just go to sleep at home."
+  },
+  {
+    "input": "She was throwing shade all night, but I kept it classy and didn't clap back.",
+    "reference": "She was making subtle insults all night, but I remained polite and did not respond."
+  },
+  {
+    "input": "Bro, that test was a whole mood. I blanked on every question and now I'm stressed af.",
+    "reference": "That test was difficult. I forgot every answer and now I am very stressed."
+  },
+  {
+    "input": "The meeting got canceled, which is lowkey a W for the whole team.",
+    "reference": "The meeting was canceled, which is a good outcome for the whole team."
+  },
+  {
+    "input": "He tried to flex his new watch, but nobody was impressed. Total cringe.",
+    "reference": "He tried to show off his new watch, but nobody was impressed. It was embarrassing."
+  },
+  {
+    "input": "I'm gonna dip in like ten minutes, so finish your story real quick.",
+    "reference": "I am going to leave in about ten minutes, so finish your story quickly."
+  },
+  {
+    "input": "That playlist hits different when you're driving at night.",
+    "reference": "That playlist feels especially good when you are driving at night."
+  },
+  {
+    "input": "She's my ride or die. We've been tight since middle school.",
+    "reference": "She is my closest friend. We have been close since middle school."
+  },
+  {
+    "input": "The food at that spot was mid, but the service was actually decent.",
+    "reference": "The food at that place was average, but the service was actually decent."
+  },
+  {
+    "input": "Stop caping for him. He clearly messed up and needs to own it.",
+    "reference": "Stop defending him. He clearly made a mistake and needs to take responsibility."
+  },
+  {
+    "input": "I'm lowkey obsessed with this show, but I won't binge it in one night.",
+    "reference": "I really like this show, but I will not watch the entire season in one night."
+  },
+  {
+    "input": "He pulled up late, no cap, and still acted like he was on time.",
+    "reference": "He arrived late, honestly, and still acted like he was on time."
+  },
+  {
+    "input": "The boss said we need to lock in before the deadline. No slacking.",
+    "reference": "The boss said we need to focus before the deadline. No slacking."
+  },
+  {
+    "input": "That joke was so corny, but it still sent me.",
+    "reference": "That joke was so silly, but it still made me laugh hard."
+  },
+  {
+    "input": "I'm not trying to be salty, but your plan sounds kinda sus.",
+    "reference": "I do not mean to be bitter, but your plan sounds somewhat suspicious."
+  },
+  {
+    "input": "We were just vibing on the porch until the rain killed the mood.",
+    "reference": "We were just relaxing on the porch until the rain ruined the mood."
+  },
+  {
+    "input": "She ate that presentation. Everyone was hyped after she finished.",
+    "reference": "She delivered an excellent presentation. Everyone was excited after she finished."
+  },
+  {
+    "input": "I need to touch grass this weekend. I've been glued to my screen all week.",
+    "reference": "I need to spend time outdoors this weekend. I have been staring at my screen all week."
+  },
+  {
+    "input": "He's always on his grind, but he never makes time to chill.",
+    "reference": "He is always working hard, but he never makes time to relax."
+  },
+  {
+    "input": "That take is cooked. Nobody agrees with you on this one.",
+    "reference": "That opinion is wrong. Nobody agrees with you on this one."
+  },
+  {
+    "input": "The movie was a sleeper hit. It blew up after people started posting about it.",
+    "reference": "The movie became surprisingly popular. It gained attention after people started posting about it."
+  },
+  {
+    "input": "I'm finna head out, but hit me up if plans change.",
+    "reference": "I am about to leave, but contact me if plans change."
+  },
+  {
+    "input": "She spilled tea about the office drama, and it was messy af.",
+    "reference": "She shared gossip about the office drama, and it was very messy."
+  },
+  {
+    "input": "Don't get in your feelings over a text. Just ask what they meant.",
+    "reference": "Do not get upset over a text. Just ask what they meant."
+  },
+  {
+    "input": "The fit was clean, but the shoes were giving tourist energy.",
+    "reference": "The outfit looked good, but the shoes looked like something a tourist would wear."
+  },
+  {
+    "input": "We were deadass lost for twenty minutes before GPS saved us.",
+    "reference": "We were seriously lost for twenty minutes before GPS saved us."
+  },
+  {
+    "input": "He's lowkey smart but highkey lazy when group projects start.",
+    "reference": "He is quite smart but very lazy when group projects start."
+  },
+  {
+    "input": "That was a whole lot of nothing. We talked for an hour and got zero done.",
+    "reference": "That accomplished very little. We talked for an hour and got nothing done."
+  }
+]

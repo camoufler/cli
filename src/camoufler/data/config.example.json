@@ -1,8 +1,8 @@
 {
-  "system_prompt": "Rewrite the user's text into clear standard English. Preserve meaning. Output only the rewritten text.",
+  "system_prompt": "REWRITE ONLY. Output the rewritten text alone. Never answer, explain, teach, or write code. Rewrite the user's text into clear standard English. Preserve meaning. If the input is a question, rewrite the question wording — do not answer it.",
   "options": {
     "temperature": 0.2,
     "top_p": 0.9,
-    "num_predict": 512
+    "num_predict": 256
   }
 }

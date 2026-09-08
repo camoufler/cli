@@ -23,7 +23,7 @@ classifiers = [
 dependencies = ["ollama>=0.4.0"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "build", "twine"]
+dev = ["pytest>=8.0", "build", "twine", "sacrebleu>=2.0"]
 
 [project.scripts]
 camoufler = "camoufler.app:main"
@@ -36,3 +36,4 @@ packages = ["src/camoufler"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["integration: requires Ollama"]

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import logging
 import sys
-from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
+from camoufler import __version__
 from camoufler.config import AppConfig, cpu_options
 from camoufler.models import ensure_small
 from camoufler.ollama_api import chat_standardize, pull_model
@@ -15,52 +15,12 @@ if TYPE_CHECKING:
     import argparse
 
 
-def _ensure_readline() -> None:
-    """Load readline on supported platforms so line-buffer queries work."""
-    try:
-        import readline  # noqa: F401
-    except ImportError:
-        pass
-
-
-def _partial_line() -> str:
-    """Return the in-progress line when Ctrl+C interrupts readline."""
-    try:
-        import readline
-
-        return readline.get_line_buffer()
-    except (ImportError, AttributeError, OSError):
-        return ""
-
-
 def read_stdin() -> str:
     """Read all stdin; error if empty."""
     text = sys.stdin.read()
     if not text.strip():
         raise ValueError("No input text on stdin.")
     return text.strip()
-
-
-def iter_interactive_inputs() -> Iterator[str]:
-    """Yield text chunks submitted by Ctrl+C on a TTY; EOF exits."""
-    _ensure_readline()
-    buffer: list[str] = []
-    while True:
-        try:
-            line = sys.stdin.readline()
-            if line == "":
-                return
-            buffer.append(line.rstrip("\n\r"))
-        except KeyboardInterrupt:
-            partial = _partial_line().strip()
-            if partial:
-                buffer.append(partial)
-            text = "\n".join(buffer).strip()
-            buffer = []
-            sys.stdout.write("\n")
-            sys.stdout.flush()
-            if text:
-                yield text
 
 
 def cmd_download(args: argparse.Namespace, logger: logging.Logger) -> None:
@@ -89,11 +49,34 @@ def cmd_standardize_interactive(
     config: AppConfig,
     logger: logging.Logger,
 ) -> None:
-    """Standardize interactive TTY input; Ctrl+C submits, EOF exits."""
+    """REPL: Enter submits one line; Ctrl+C or EOF quits."""
     model = ensure_small(args.model)
     opts = cpu_options(config.options)
-    for user_text in iter_interactive_inputs():
+    print(
+        f"camoufler {__version__}  model {model}\n"
+        "You type under #user. Camoufler answers under #camoufler.\n"
+        "Enter to send. Ctrl+C or Ctrl+D to quit.\n",
+        file=sys.stderr,
+    )
+    while True:
+        print("#user", file=sys.stderr)
+        sys.stderr.flush()
+        try:
+            line = input()
+        except (EOFError, KeyboardInterrupt):
+            print("\nbye.", file=sys.stderr)
+            return
+        user_text = line.strip()
+        if not user_text:
+            continue
         logger.info("Standardizing with %s", model)
-        result = chat_standardize(model, config.system_prompt, user_text, opts)
+        try:
+            result = chat_standardize(model, config.system_prompt, user_text, opts)
+        except Exception as exc:  # noqa: BLE001 — keep the REPL alive
+            print(f"\n#camoufler\nerror: {exc}\n", file=sys.stderr)
+            continue
+        print("\n#camoufler", file=sys.stderr)
+        sys.stderr.flush()
         print(result)
+        print()
         sys.stdout.flush()
