@@ -7,14 +7,14 @@ name = "camoufler"
 version = "0.1.0"
 description = "Local CPU-only LLM CLI to download small Ollama models and standardize English text."
 readme = "README.md"
-license = "GPL-3.0-or-later"
+license = "MIT"
 requires-python = ">=3.11"
 keywords = ["ollama", "llm", "cli", "english", "local"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
