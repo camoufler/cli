@@ -11,7 +11,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the camoufler argument parser."""
     parser = argparse.ArgumentParser(
         prog="camoufler",
-        description="Download small local Ollama models and standardize English text.",
+        description="Download small local Ollama models and standardize English prompts.",
     )
     parser.add_argument(
         "--version",

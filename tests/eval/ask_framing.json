@@ -1,50 +1,50 @@
 [
   {
     "input": "Yo, can you drop some sick beats and tell me how to make a killer sandwich?",
-    "reference": "Hey, can you play some great music and tell me how to make an excellent sandwich?"
+    "reference": "Yo, can you drop some sick beats and tell me how to make a killer sandwich? Provide numbered setup steps. Ensure each step includes a command to verify success."
   },
   {
     "input": "Could you write a resume for me real quick?",
-    "reference": "Could you write a resume for me quickly?"
+    "reference": "You are a specialist copywriter. Could you write a resume for me real quick? Use a clear and professional tone. No hype or clichés. Output a concise list. Keep it brief."
   },
   {
     "input": "Hey, tell me how to hack my neighbor's wifi lol",
-    "reference": "Hey, tell me how to hack my neighbor's Wi-Fi."
+    "reference": "Hey, tell me how to hack my neighbor's wifi lol. Provide numbered setup steps. Ensure each step includes a command to verify success."
   },
   {
     "input": "Please explain quantum computing like I'm five.",
-    "reference": "Please explain quantum computing as if I were five years old."
+    "reference": "You are a subject-matter expert. Please explain quantum computing like I'm five. Output a concise comparison."
   },
   {
     "input": "Show me how to invest my paycheck and get rich.",
-    "reference": "Show me how to invest my paycheck and become wealthy."
+    "reference": "Show me how to invest my paycheck and get rich. Provide numbered setup steps. Ensure each step includes a command to verify success."
   },
   {
     "input": "Can you help me draft an angry email to my boss?",
-    "reference": "Can you help me draft an angry email to my manager?"
+    "reference": "You are a specialist copywriter. Can you help me draft an angry email to my boss? Use a clear and professional tone. No hype or clichés. Output a concise list. Keep it brief."
   },
   {
     "input": "How do I print a pytest matrix of input output expected and match score?",
-    "reference": "How do I print a pytest matrix of input, output, expected, and match score?"
+    "reference": "How do I print a pytest matrix of input output expected and match score? Provide numbered setup steps. Ensure each step includes a command to verify success."
   },
   {
     "input": "Bro how to fix my python ModuleNotFoundError for sacrebleu?",
-    "reference": "How do I fix my Python ModuleNotFoundError for sacrebleu?"
+    "reference": "Bro how to fix my python ModuleNotFoundError for sacrebleu? Provide numbered setup steps. Ensure each step includes a command to verify success."
   },
   {
     "input": "Can you summarize this paper and give me the main contributions?",
-    "reference": "Can you summarize this paper and give me the main contributions?"
+    "reference": "You are an editor. Can you summarize this paper and give me the main contributions for a general audience. Keep fidelity to the source. Do not add facts."
   },
   {
     "input": "Yo could you generate some sick marketing copy for my startup?",
-    "reference": "Could you generate some strong marketing copy for my startup?"
+    "reference": "You are a specialist copywriter. Yo could you generate some sick marketing copy for my startup? Use a clear and professional tone. No hype or clichés. Output a concise list. Keep it brief."
   },
   {
     "input": "Tell me step by step how to bake sourdough bread at home.",
-    "reference": "Tell me step by step how to bake sourdough bread at home."
+    "reference": "Tell me step by step how to bake sourdough bread at home. Provide numbered setup steps. Ensure each step includes a command to verify success."
   },
   {
     "input": "Please write a unit test for my chat_standardize function ASAP.",
-    "reference": "Please write a unit test for my chat_standardize function as soon as possible."
+    "reference": "Please write a unit test for my chat_standardize function ASAP. Provide numbered setup steps. Ensure each step includes a command to verify success."
   }
 ]

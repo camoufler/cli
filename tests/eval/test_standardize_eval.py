@@ -156,3 +156,10 @@ def test_ask_framing_eval(ask_framing_config):
         cap=ASK_FRAMING_EVAL_CAP,
     )
     _run_eval("ask_framing", rows, ask_framing_config)
+
+
+def test_prompt_expand_eval(app_config):
+    if not _ollama_available():
+        pytest.skip("Ollama not available")
+    rows = _load_eval(ROOT / "tests" / "eval" / "prompt_expand.json")
+    _run_eval("prompt_expand", rows, app_config)
