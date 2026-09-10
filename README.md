@@ -48,24 +48,3 @@ camoufler -m qwen2.5:1.5b -f standardize -c config/config.example.json
 | `--verbose` | `0` errors, `1` info, `2` debug |
 
 GPU offload is disabled (`num_gpu: 0`).
-
-## Usecase modes
-
-`standardize` classifies stdin, rewrites it to standard English, then redacts PII.
-
-| Mode | What it does |
-|------|----------------|
-| Utterance | Slang or grammar with no ask → one rewritten line |
-| Prompt | Real ask → one expanded paragraph (does not fulfill the ask) |
-
-Prompt types:
-
-| Type | Framework |
-|------|-----------|
-| Factual | RTF |
-| Instructional | TAG |
-| Creative | CREATE |
-| Analytical | RACE |
-| Transformation | TRAC |
-| Role-playing | COAST |
-| Strategic | GRADE |
