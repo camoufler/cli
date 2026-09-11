@@ -63,7 +63,10 @@ _PATTERNS: tuple[tuple[PromptType, re.Pattern[str], int], ...] = (
         PromptType.CREATIVE,
         re.compile(
             r"(?i)\b(?:draft|brainstorm|headlines?|tagline|slogan|compelling|"
-            r"write (?:a |me )?(?:poem|story|headline|copy|email|resume|blog)|"
+            r"write (?:an? |me )?(?:poem|story|headline|copy|email|letter|"
+            r"complaint|resume|blog)|"
+            r"(?:i wanna|i want to) write|"
+            r"angry email|"
             r"marketing copy|generate .{0,20}copy)\b"
         ),
         3,
@@ -89,7 +92,7 @@ _PATTERNS: tuple[tuple[PromptType, re.Pattern[str], int], ...] = (
         PromptType.ROLEPLAY,
         re.compile(
             r"(?i)\b(?:act as|role-?play|interview me|conducting a|"
-            r"you are an interviewer|ask me three)\b"
+            r"you are an interviewer|ask me three|act as .{0,40}support)\b"
         ),
         3,
     ),

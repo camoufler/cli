@@ -59,6 +59,40 @@ ROLE_STOPWORDS = frozenset(
         "narrator",
     }
 )
+EXPLICIT_ROLE_RE = re.compile(r"(?i)\b(?:act as|you are|role-?play)\b")
+USER_VOICE_WRITING_RE = re.compile(
+    r"(?i)(?:"
+    r"\b(?:i wanna|i want to|i need to|i am going to|i['’]m gonna)\s+write\b|"
+    r"\bwrite (?:an? |me )?(?:email|letter|complaint|message)\b|"
+    r"\bdraft (?:an? )?(?:angry |frustrated |pissed[- ]off )?(?:email|letter|complaint)\b|"
+    r"\b(?:angry|frustrated|pissed(?:\s+off)?)\s+email\b|"
+    r"\b(?:email|letter|complaint)\b.+\b(?:my|i['’]m|i am|pissed|stopped working)\b|"
+    r"\bmy \w+(?:\s+\w+){0,3}\s+(?:stopped working|broke|is broken)\b|"
+    r"\bcomplain(?:t|ing)?\b"
+    r")"
+)
+ADDRESSEE_ROLE_RE = re.compile(
+    r"(?i)\b(?:"
+    r"customer support|customer service|support representative|"
+    r"service representative|support agent|technical support|"
+    r"support specialist|call center|interviewer|"
+    r"(?:the )?boss|vendor|manufacturer"
+    r")\b"
+)
+AFFECT_PISSED_RE = re.compile(r"(?i)\b(?:pissed|furious|livid)\b")
+AFFECT_ANGRY_RE = re.compile(r"(?i)\bangry\b")
+AFFECT_FRUSTRATED_RE = re.compile(r"(?i)\bfrustrated\b")
+AFFECT_DISAPPOINTED_RE = re.compile(r"(?i)\b(?:disappointed|dissapointed|upset)\b")
+AFFECT_ANY_RE = re.compile(
+    r"(?i)\b(?:express how|disappointed|dissapointed|upset|angry|"
+    r"frustrated|pissed|furious|livid)\b"
+)
+USER_VOICE_ROLE = "writing assistant helping the user draft in their own voice"
+USER_VOICE_ADJUSTMENTS = (
+    "Keep the user's stance; do not switch into the addressee's role"
+)
+USER_VOICE_EXTRAS = "Preserve the user's emotion and stance"
+USER_VOICE_EMAIL_TYPE = "a complete email"
 
 
 def tidy(value: str) -> str:
@@ -101,6 +135,73 @@ def is_utterance(text: str) -> bool:
 def is_proofread(text: str) -> bool:
     """True when the user asked to proofread."""
     return bool(re.search(r"(?i)proof\s*read", text))
+
+
+def is_explicit_role_request(text: str) -> bool:
+    """True when the user assigned the model a role (act as / you are)."""
+    return bool(EXPLICIT_ROLE_RE.search(text))
+
+
+def is_user_voice_writing(text: str) -> bool:
+    """True when the user wants output in their own voice (complaint, email)."""
+    return bool(USER_VOICE_WRITING_RE.search(text))
+
+
+def role_inverts_speaker(role: str, original: str) -> bool:
+    """True when a predicted role is the addressee of a first-person ask."""
+    if is_explicit_role_request(original) or not is_user_voice_writing(original):
+        return False
+    return bool(ADDRESSEE_ROLE_RE.search(role))
+
+
+def helper_writing_role(original: str) -> str | None:
+    """Marker for first-person writing with no assigned role (do not inject it)."""
+    if is_explicit_role_request(original) or not is_user_voice_writing(original):
+        return None
+    return USER_VOICE_ROLE
+
+
+def should_omit_role(original: str, seeded: Mapping[str, str], role_slot: str | None) -> bool:
+    """True when Role was not assigned by the user (labels or act as / you are)."""
+    if not role_slot:
+        return True
+    if role_slot in seeded:
+        return False
+    return not is_explicit_role_request(original)
+
+
+def request_already_has_affect(text: str) -> bool:
+    """True when the ask already states emotion (don't add a second tone)."""
+    return bool(AFFECT_ANY_RE.search(text))
+
+
+def stated_tone_clause(text: str) -> str | None:
+    """Lead-in tone sentence from affect words in the ask, if any."""
+    if AFFECT_DISAPPOINTED_RE.search(text):
+        return "Use a disappointed tone"
+    if AFFECT_PISSED_RE.search(text) or AFFECT_FRUSTRATED_RE.search(text):
+        return "Use a frustrated, direct, and firm tone"
+    if AFFECT_ANGRY_RE.search(text):
+        return "Use an angry, direct, and firm tone"
+    return None
+
+
+def normalize_slot_text(value: str) -> str:
+    """Lowercase and strip punctuation for few-shot leak checks."""
+    return re.sub(r"\W+", " ", value.lower()).strip()
+
+
+def matches_fewshot_ban(value: str, banned: frozenset[str]) -> bool:
+    """True when a predicted slot copies a system-prompt example fill."""
+    if not value or not banned:
+        return False
+    normalized = normalize_slot_text(value)
+    if not normalized:
+        return False
+    for ban in banned:
+        if ban and (ban in normalized or normalized in ban):
+            return True
+    return False
 
 
 def echoes_prompt(value: str, original: str) -> bool:
@@ -214,9 +315,11 @@ def with_article(value: str) -> str:
 
 
 def format_role(value: str, default: str = "copy editor") -> str:
-    """`You are a {role}.`"""
+    """`You are a {role}.` Empty value omits the clause."""
     cleaned = tidy(value).rstrip(".")
     cleaned = re.sub(r"(?i)^(you are|act as)\s+", "", cleaned)
+    if not cleaned:
+        return ""
     if is_junk(cleaned) or cleaned.lower() in ROLE_STOPWORDS:
         cleaned = default
     cleaned = with_article(cleaned)

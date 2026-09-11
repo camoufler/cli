@@ -50,14 +50,13 @@ def test_merge_rejects_glued_action_as_role():
         "Expectations: a detailed and informative blog post about the application of AI"
     )
     merged = merge_predicted_slots(original, predicted)
-    assert "action" not in merged["role"].lower()
-    assert merged["role"] == "technical writer"
+    assert "role" not in merged
     assert merged["action"] == original
     assert merged["context"] == "a general audience"
     paragraph = complete_from_prediction(original, predicted)
     assert "You are an Action" not in paragraph
+    assert "You are a technical writer." not in paragraph
     assert "for a blog post about AI application" not in paragraph
-    assert paragraph.startswith("You are a technical writer.")
     assert "Write a blog post about AI application for a general audience." in paragraph
 
 
@@ -70,7 +69,7 @@ def test_merge_keeps_user_action_and_fills_gaps():
     )
     merged = merge_predicted_slots(BLOG, predicted)
     assert merged["action"] == BLOG
-    assert merged["role"] == "technical writer"
+    assert "role" not in merged
     assert merged["context"] == "general readers who are novice in AI"
     assert merged["expectations"] == "under 40 words, simple, genius"
 
@@ -85,7 +84,7 @@ def test_complete_from_prediction_is_one_paragraph():
     paragraph = complete_from_prediction(BLOG, predicted)
     assert "\n" not in paragraph
     assert paragraph == (
-        "You are a technical writer. Write a blog post about AI "
+        "Write a blog post about AI "
         "for general readers who are novice in AI. "
         "Keep it under 40 words, simple, genius."
     )
@@ -168,4 +167,23 @@ def test_rejects_narrator_summary_for_slang_utterance():
     assert paragraph.startswith("You are a copy editor.")
     assert "Rewrite the text into standard English" in paragraph
     assert "informal spoken English" in paragraph
+
+
+def test_user_voice_email_rejects_support_role():
+    original = (
+        "I wanna write an email about my ninja blender, it stop working and I m pissed of."
+    )
+    predicted = (
+        "Role: customer support representative\n"
+        "Action: apologize and offer a replacement\n"
+        "Context: Ninja blender customers\n"
+        "Expectations: apologize, offer a solution, provide a timeframe"
+    )
+    merged = merge_predicted_slots(original, predicted)
+    assert "role" not in merged
+    assert "pissed" in merged["action"].lower() or "blender" in merged["action"].lower()
+    paragraph = complete_from_prediction(original, predicted)
+    assert "You are" not in paragraph
+    assert "customer support" not in paragraph.lower()
+    assert "pissed" in paragraph.lower() or "blender" in paragraph.lower()
 

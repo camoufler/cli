@@ -107,3 +107,17 @@ def test_classify_invalid_chat_falls_back():
         classify_chat=lambda *_a, **_k: "nope",
     )
     assert result is heuristic
+
+
+def test_write_an_email_is_creative():
+    winner, _, _ = classify_heuristic(
+        "I wanna write an email about my ninja blender, it stop working and I m pissed of."
+    )
+    assert winner is PromptType.CREATIVE
+
+
+def test_act_as_support_is_roleplay():
+    winner, _, _ = classify_heuristic(
+        "Act as Ninja customer support and reply to this complaint."
+    )
+    assert winner is PromptType.ROLEPLAY

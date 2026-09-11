@@ -1,27 +1,35 @@
 [
   {
     "input": "Yo, can you drop some sick beats and tell me how to make a killer sandwich?",
-    "reference": "Yo, can you drop some sick beats and tell me how to make a killer sandwich? Provide numbered setup steps. Ensure each step includes a command to verify success."
+    "reference": "Yo, can you drop some sick beats and tell me how to make a killer sandwich? Provide numbered setup steps. Ensure each step is concrete and easy to follow."
   },
   {
     "input": "Could you write a resume for me real quick?",
-    "reference": "You are a specialist copywriter. Could you write a resume for me real quick? Use a clear and professional tone. No hype or clichés. Output a concise list. Keep it brief."
+    "reference": "Could you write a resume for me real quick? Use a clear and professional tone. No hype or clichés. Output a concise list. Keep it brief."
   },
   {
     "input": "Hey, tell me how to hack my neighbor's wifi lol",
-    "reference": "Hey, tell me how to hack my neighbor's wifi lol. Provide numbered setup steps. Ensure each step includes a command to verify success."
+    "reference": "Hey, tell me how to hack my neighbor's wifi lol. Provide numbered setup steps. Ensure each step is concrete and easy to follow."
   },
   {
     "input": "Please explain quantum computing like I'm five.",
-    "reference": "You are a subject-matter expert. Please explain quantum computing like I'm five. Output a concise comparison."
+    "reference": "Please explain quantum computing like I'm five."
   },
   {
     "input": "Show me how to invest my paycheck and get rich.",
-    "reference": "Show me how to invest my paycheck and get rich. Provide numbered setup steps. Ensure each step includes a command to verify success."
+    "reference": "Show me how to invest my paycheck and get rich. Provide numbered setup steps. Ensure each step is concrete and easy to follow."
+  },
+  {
+    "input": "I wanna write an email about my ninja blender, it stop working and I m pissed of.",
+    "reference": "I wanna write an email about my ninja blender, it stop working and I m pissed of. Keep the user's stance; do not switch into the addressee's role. Output a complete email. Preserve the user's emotion and stance."
   },
   {
     "input": "Can you help me draft an angry email to my boss?",
-    "reference": "You are a specialist copywriter. Can you help me draft an angry email to my boss? Use a clear and professional tone. No hype or clichés. Output a concise list. Keep it brief."
+    "reference": "Can you help me draft an angry email to my boss? Keep the user's stance; do not switch into the addressee's role. Output a complete email. Preserve the user's emotion and stance."
+  },
+  {
+    "input": "Write an email about my mixi not working. Express how disappointed I am.",
+    "reference": "Write an email about my mixi not working. Express how disappointed I am. Keep the user's stance; do not switch into the addressee's role. Output a complete email. Preserve the user's emotion and stance."
   },
   {
     "input": "How do I print a pytest matrix of input output expected and match score?",
@@ -33,15 +41,15 @@
   },
   {
     "input": "Can you summarize this paper and give me the main contributions?",
-    "reference": "You are an editor. Can you summarize this paper and give me the main contributions for a general audience. Keep fidelity to the source. Do not add facts."
+    "reference": "Can you summarize this paper and give me the main contributions for a general audience. Keep fidelity to the source. Do not add facts."
   },
   {
     "input": "Yo could you generate some sick marketing copy for my startup?",
-    "reference": "You are a specialist copywriter. Yo could you generate some sick marketing copy for my startup? Use a clear and professional tone. No hype or clichés. Output a concise list. Keep it brief."
+    "reference": "Yo could you generate some sick marketing copy for my startup? Use a clear and professional tone. No hype or clichés. Output a concise list. Keep it brief."
   },
   {
     "input": "Tell me step by step how to bake sourdough bread at home.",
-    "reference": "Tell me step by step how to bake sourdough bread at home. Provide numbered setup steps. Ensure each step includes a command to verify success."
+    "reference": "Tell me step by step how to bake sourdough bread at home. Provide numbered setup steps. Ensure each step is concrete and easy to follow."
   },
   {
     "input": "Please write a unit test for my chat_standardize function ASAP.",

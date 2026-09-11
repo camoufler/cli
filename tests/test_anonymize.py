@@ -47,3 +47,10 @@ def test_redacts_ssn_and_ipv4():
 
 def test_leaves_plain_text():
     assert anonymize("I will leave later.") == "I will leave later."
+
+
+def test_leaves_product_name_mixi():
+    text = "Write an email about my mixi not working. Express how disappointed I am."
+    out = anonymize(text)
+    assert "mixi" in out
+    assert "[BANKING_DATA]" not in out

@@ -12,11 +12,20 @@ from camoufler.slots import (
     EXPECT_RE,
     ROLE_EXTRACT_RE,
     ROLE_RE,
+    USER_VOICE_ADJUSTMENTS,
+    USER_VOICE_EMAIL_TYPE,
+    USER_VOICE_EXTRAS,
     as_sentence,
     clean_predicted_value,
     echoes_prompt,
     extract_labeled_sections,
     format_role,
+    is_user_voice_writing,
+    matches_fewshot_ban,
+    request_already_has_affect,
+    role_inverts_speaker,
+    should_omit_role,
+    stated_tone_clause,
     uncap,
 )
 
@@ -43,6 +52,7 @@ class Framework:
     verb_slots: frozenset[str] = field(default_factory=frozenset)
     has_checks: Mapping[str, HasCheck] = field(default_factory=dict)
     race_backend: bool = False
+    fewshot_ban: frozenset[str] = field(default_factory=frozenset)
 
 
 def _has_role(text: str) -> bool:
@@ -184,6 +194,90 @@ def _has_eval(text: str) -> bool:
     )
 
 
+_TECHNICAL_RE = re.compile(
+    r"(?i)\b(?:cron|rsync|bash|ssh|pytest|unit test|modulenotfounderror|"
+    r"python|install|configure|pipeline|api|function|code)\b"
+)
+_TAG_TECH_GOAL = "each step includes a command to verify success"
+_TAG_GENERIC_GOAL = "each step is concrete and easy to follow"
+_CS_LEAK_RE = re.compile(
+    r"(?i)\b(?:apologize|timeframe|offer a solution|product page|"
+    r"customer support|no hype|clich)\b"
+)
+_PROFESSIONAL_TONE_RE = re.compile(r"(?i)\b(?:professional|clear and professional)\b")
+_COMPARATIVE_RE = re.compile(
+    r"(?i)\b(?:difference between|diff(?:erence)? between|versus|\bvs\.?\b|"
+    r"compare|comparison)\b"
+)
+
+
+def _looks_technical(text: str) -> bool:
+    return bool(_TECHNICAL_RE.search(text))
+
+
+def _is_comparative(text: str) -> bool:
+    return bool(_COMPARATIVE_RE.search(text))
+
+
+def _drop_invented_role(fw: Framework, original: str, seeded: dict[str, str], answers: dict[str, str]) -> None:
+    """Remove Role/Character/Actor unless the user assigned it."""
+    if not fw.role_slot:
+        return
+    if should_omit_role(original, seeded, fw.role_slot):
+        answers.pop(fw.role_slot, None)
+        return
+    role = answers.get(fw.role_slot, "")
+    if role and role_inverts_speaker(role, original):
+        answers.pop(fw.role_slot, None)
+
+
+def _finalize_answers(
+    fw: Framework, original: str, answers: dict[str, str], seeded: dict[str, str]
+) -> dict[str, str]:
+    """Omit invented roles, keep stated tone, and domain-limit TAG defaults."""
+    _drop_invented_role(fw, original, seeded, answers)
+
+    if fw.key == "create" and is_user_voice_writing(original):
+        tone = stated_tone_clause(original)
+        examples = answers.get("examples", "")
+        leaked_examples = bool(
+            examples
+            and (
+                _PROFESSIONAL_TONE_RE.search(examples)
+                or _CS_LEAK_RE.search(examples)
+                or matches_fewshot_ban(examples, fw.fewshot_ban)
+            )
+        )
+        frustrated_upgrade = bool(
+            examples
+            and re.search(r"(?i)\bfrustrated\b", examples)
+            and re.search(r"(?i)\b(?:disappointed|dissapointed|upset)\b", original)
+        )
+        if request_already_has_affect(original):
+            if leaked_examples or frustrated_upgrade:
+                answers.pop("examples", None)
+        elif tone:
+            answers["examples"] = tone
+        elif leaked_examples:
+            answers["examples"] = "Use a direct, firm tone"
+        adjustments = answers.get("adjustments", "")
+        if not _has_guardrail(original) or _CS_LEAK_RE.search(adjustments):
+            answers["adjustments"] = USER_VOICE_ADJUSTMENTS
+        if "email" in original.lower() and not _has_output_type(original):
+            answers["type"] = USER_VOICE_EMAIL_TYPE
+        if not _has_length(original):
+            answers["extras"] = USER_VOICE_EXTRAS
+
+    if fw.key == "tag":
+        goal = answers.get("goal", "")
+        if _looks_technical(original):
+            if goal == _TAG_GENERIC_GOAL:
+                answers["goal"] = _TAG_TECH_GOAL
+        elif re.search(r"(?i)command to verify", goal):
+            answers["goal"] = _TAG_GENERIC_GOAL
+    return answers
+
+
 def seed_answers(fw: Framework, text: str) -> dict[str, str]:
     """Fill slots already present so the model only supplies gaps."""
     if fw.race_backend:
@@ -217,11 +311,24 @@ def missing_slots(fw: Framework, text: str) -> list[str]:
 
 
 def needs_prediction(fw: Framework, text: str) -> bool:
-    """True when any framework slot still needs a value."""
+    """True when a non-optional framework slot still needs a value."""
     if fw.race_backend:
         return race.needs_prediction(text)
     answers = seed_answers(fw, text)
-    return any(slot not in answers for slot in fw.slots)
+    for slot in fw.slots:
+        if slot in answers:
+            continue
+        if fw.role_slot and slot == fw.role_slot:
+            continue
+        if (
+            fw.key == "rtf"
+            and slot == "format"
+            and not _is_comparative(text)
+            and not _has_format(text)
+        ):
+            continue
+        return True
+    return False
 
 
 def merge_predicted_slots(fw: Framework, original: str, predicted: str) -> dict[str, str]:
@@ -229,6 +336,7 @@ def merge_predicted_slots(fw: Framework, original: str, predicted: str) -> dict[
     if fw.race_backend:
         return race.merge_predicted_slots(original, predicted)
     answers = seed_answers(fw, original)
+    seeded = dict(answers)
     predicted_slots = extract_labeled_sections(predicted, fw.slots, fw.aliases)
     for slot in fw.slots:
         if slot in answers:
@@ -246,14 +354,26 @@ def merge_predicted_slots(fw: Framework, original: str, predicted: str) -> dict[
             continue
         if slot in fw.echo_slots and echoes_prompt(cleaned, original):
             continue
+        if matches_fewshot_ban(cleaned, fw.fewshot_ban):
+            continue
         answers[slot] = cleaned
     if fw.task_slot not in answers:
         answers[fw.task_slot] = original.strip()
-    if fw.role_slot and fw.role_slot not in answers:
-        answers[fw.role_slot] = fw.defaults.get(fw.role_slot, "a specialist in the topic")
     for slot, fallback in fw.defaults.items():
+        if fw.role_slot and slot == fw.role_slot:
+            continue
+        if fw.key == "rtf" and slot == "format":
+            if _is_comparative(original) or _has_format(original):
+                answers.setdefault(slot, fallback)
+            continue
+        if (
+            fw.key == "create"
+            and is_user_voice_writing(original)
+            and slot in {"examples", "adjustments", "type", "extras"}
+        ):
+            continue
         answers.setdefault(slot, fallback)
-    return answers
+    return _finalize_answers(fw, original, answers, seeded)
 
 
 def complete_from_prediction(
@@ -290,12 +410,14 @@ def _punctuate_join(*parts: str) -> str:
 
 
 def assemble_rtf(answers: dict[str, str]) -> str:
-    """Role, Task, Format → one paragraph."""
+    """Role, Task, Format → one paragraph. Role/format omitted when empty."""
+    role = format_role(answers["role"]) if answers.get("role") else ""
+    fmt = answers.get("format") or ""
     return _punctuate_join(
-        format_role(answers["role"], default="subject-matter expert"),
-        as_sentence(answers["task"]),
+        role,
+        as_sentence(answers.get("task") or ""),
         _ensure_lead(
-            answers["format"],
+            fmt,
             ("output", "provide", "use", "return", "give", "write", "format"),
             "Output {}",
         ),
@@ -316,47 +438,59 @@ def assemble_tag(answers: dict[str, str]) -> str:
 
 
 def assemble_create(answers: dict[str, str]) -> str:
-    """CREATE slots → one paragraph."""
+    """CREATE slots → one paragraph. Character omitted when empty."""
+    role = (
+        format_role(answers["character"], default="specialist copywriter")
+        if answers.get("character")
+        else ""
+    )
     return _punctuate_join(
-        format_role(answers["character"], default="specialist copywriter"),
-        as_sentence(answers["request"]),
+        role,
+        as_sentence(answers.get("request") or ""),
         _ensure_lead(
-            answers["examples"],
+            answers.get("examples") or "",
             ("tone", "use", "crisp", "professional"),
             "Use a {} tone",
         ),
-        as_sentence(answers["adjustments"]),
+        as_sentence(answers.get("adjustments") or ""),
         _ensure_lead(
-            answers["type"],
+            answers.get("type") or "",
             ("output", "provide", "bulleted", "list"),
             "Output {}",
         ),
-        as_sentence(answers["extras"]),
+        as_sentence(answers.get("extras") or ""),
     )
 
 
 def assemble_trac(answers: dict[str, str]) -> str:
     """Task, Role, Audience, Constraints → one paragraph."""
-    task_core = answers["task"].strip().rstrip(" .!?")
-    audience = answers["audience"].strip().rstrip(".")
-    if not re.match(r"(?i)^(for|aimed at)\b", audience):
+    task_core = (answers.get("task") or "").strip().rstrip(" .!?")
+    audience = (answers.get("audience") or "").strip().rstrip(".")
+    if audience and not re.match(r"(?i)^(for|aimed at)\b", audience):
         audience = f"for {audience}"
+    role = format_role(answers["role"], default="editor") if answers.get("role") else ""
+    task_line = f"{task_core} {audience}".strip() if audience else task_core
     return _punctuate_join(
-        format_role(answers["role"], default="editor"),
-        as_sentence(f"{task_core} {audience}"),
-        as_sentence(answers["constraints"]),
+        role,
+        as_sentence(task_line),
+        as_sentence(answers.get("constraints") or ""),
     )
 
 
 def assemble_coast(answers: dict[str, str]) -> str:
     """Context, Objective, Actor, Scenario, Tone → one paragraph."""
+    role = (
+        format_role(answers["actor"], default="specialist")
+        if answers.get("actor")
+        else ""
+    )
     return _punctuate_join(
-        format_role(answers["actor"], default="specialist"),
-        as_sentence(answers["context"]),
-        as_sentence(answers["objective"]),
-        as_sentence(answers["scenario"]),
+        role,
+        as_sentence(answers.get("context") or ""),
+        as_sentence(answers.get("objective") or ""),
+        as_sentence(answers.get("scenario") or ""),
         _ensure_lead(
-            answers["tone"],
+            answers.get("tone") or "",
             ("tone", "keep", "remain"),
             "Keep the tone {}",
         ),
@@ -365,17 +499,22 @@ def assemble_coast(answers: dict[str, str]) -> str:
 
 def assemble_grade(answers: dict[str, str]) -> str:
     """Goal, Role, Assumptions, Deliverables, Evaluation → one paragraph."""
+    role = (
+        format_role(answers["role"], default="strategist")
+        if answers.get("role")
+        else ""
+    )
     return _punctuate_join(
-        format_role(answers["role"], default="strategist"),
-        as_sentence(answers["goal"]),
+        role,
+        as_sentence(answers.get("goal") or ""),
         _ensure_lead(
-            answers["assumptions"],
+            answers.get("assumptions") or "",
             ("assumptions", "given", "with"),
             "Assumptions: {}",
         ),
-        as_sentence(answers["deliverables"]),
+        as_sentence(answers.get("deliverables") or ""),
         _ensure_lead(
-            answers["evaluation"],
+            answers.get("evaluation") or "",
             ("benchmark", "success", "measure", "success:"),
             "Success: {}",
         ),
@@ -422,6 +561,10 @@ CREATE_SYSTEM = (
     "You infer missing CREATE slots for a prompt. You never fulfill the request.\n\n"
     "Infer Character, Request, Examples, Adjustments, Type, and Extras. "
     "Output only six labeled lines. Do not write the headlines or copy.\n\n"
+    "Leave Character empty unless the user said act as or you are. "
+    "If the user is writing in their own voice (complaint, email, 'I want to write'), "
+    "do not invent a Character and never use the addressee (customer support, the boss).\n"
+    "Keep stated emotion in Examples. Do not upgrade disappointed to frustrated.\n\n"
     "Output exactly:\n"
     "Character: ...\n"
     "Request: ...\n"
@@ -436,7 +579,16 @@ CREATE_SYSTEM = (
     "Examples: crisp, technical, and benefit-driven\n"
     "Adjustments: no marketing jargon or hype words\n"
     "Type: bulleted list with sub-bullets explaining value proposition\n"
-    "Extras: keep each headline under 10 words"
+    "Extras: keep each headline under 10 words\n\n"
+    "Example:\n"
+    "Input: I wanna write an email about my ninja blender, it stopped working "
+    "and I'm pissed off.\n"
+    "Character:\n"
+    "Request: write an email about my Ninja blender that stopped working\n"
+    "Examples: frustrated, direct, and firm\n"
+    "Adjustments: keep the user's stance; do not switch into the addressee's role\n"
+    "Type: a complete email\n"
+    "Extras: preserve the user's emotion and stance"
 )
 
 TRAC_SYSTEM = (
@@ -503,7 +655,6 @@ RTF = Framework(
     slots=("role", "task", "format"),
     labels={"role": "Role", "task": "Task", "format": "Format"},
     defaults={
-        "role": "subject-matter expert",
         "format": "a concise comparison",
     },
     system_prompt=RTF_SYSTEM,
@@ -518,6 +669,13 @@ RTF = Framework(
         "task": _has_question_task,
         "format": _has_format,
     },
+    fewshot_ban=frozenset(
+        {
+            "enterprise information security architect",
+            "3 row comparison table",
+            "2 sentence summary",
+        }
+    ),
 )
 
 TAG = Framework(
@@ -528,7 +686,7 @@ TAG = Framework(
     labels={"task": "Task", "action": "Action", "goal": "Goal"},
     defaults={
         "action": "Provide numbered setup steps",
-        "goal": "each step includes a command to verify success",
+        "goal": "each step is concrete and easy to follow",
     },
     system_prompt=TAG_SYSTEM,
     task_slot="task",
@@ -577,6 +735,15 @@ CREATE = Framework(
         "type": _has_output_type,
         "extras": _has_length,
     },
+    fewshot_ban=frozenset(
+        {
+            "writing assistant helping the user draft",
+            "direct response b2b copywriter",
+            "do not switch into customer support",
+            "preserve the frustration",
+            "keep the user s stance as the customer",
+        }
+    ),
 )
 
 RACE = Framework(
@@ -630,6 +797,7 @@ TRAC = Framework(
         "audience": _has_audience,
         "constraints": _has_constraints,
     },
+    fewshot_ban=frozenset({"strategic management consultant"}),
 )
 
 COAST = Framework(
@@ -664,6 +832,12 @@ COAST = Framework(
         "scenario": _has_pacing,
         "tone": _has_tone_word,
     },
+    fewshot_ban=frozenset(
+        {
+            "principal infrastructure architect",
+            "senior cloud infrastructure lead",
+        }
+    ),
 )
 
 GRADE = Framework(
@@ -698,6 +872,12 @@ GRADE = Framework(
         "deliverables": _has_deliverables,
         "evaluation": _has_eval,
     },
+    fewshot_ban=frozenset(
+        {
+            "cloud certification mentor",
+            "aws certified solutions architect",
+        }
+    ),
 )
 
 FRAMEWORKS: dict[str, Framework] = {
