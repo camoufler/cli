@@ -1,6 +1,8 @@
 # camoufler
 
-Local CPU-only CLI for small Ollama models. Download a model, then rewrite stdin text into standard English.
+**What it does.** Camoufler takes what you typed — slang, shorthand, an unfinished ask — and turns it into clear standard English. It fills in missing pieces of the request and strips personal details (emails, phone numbers, passwords, account numbers) before anything leaves your machine.
+
+**Why.** So you can talk the way you talk, send a complete request, and keep your identity and PII out of it. You stay unique. Your digital presence stays hidden.
 
 ## Requirements
 
