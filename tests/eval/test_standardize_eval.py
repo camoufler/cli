@@ -26,7 +26,7 @@ PASS_RATE_THRESHOLD = 0.75
 DEFAULT_MODEL = "qwen2.5:1.5b"
 # Cap rows per suite (override with CAMOUFLER_EVAL_CAP). Ask framing defaults lower.
 DEFAULT_EVAL_CAP = 100
-ASK_FRAMING_EVAL_CAP = 8
+ASK_FRAMING_EVAL_CAP = 10
 
 _chrf = CHRF()
 
@@ -156,3 +156,10 @@ def test_ask_framing_eval(ask_framing_config):
         cap=ASK_FRAMING_EVAL_CAP,
     )
     _run_eval("ask_framing", rows, ask_framing_config)
+
+
+def test_prompt_expand_eval(app_config):
+    if not _ollama_available():
+        pytest.skip("Ollama not available")
+    rows = _load_eval(ROOT / "tests" / "eval" / "prompt_expand.json")
+    _run_eval("prompt_expand", rows, app_config)

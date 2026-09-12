@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING
 from camoufler import __version__
 from camoufler.config import AppConfig, cpu_options
 from camoufler.models import ensure_small
-from camoufler.ollama_api import chat_standardize, pull_model
+from camoufler.ollama_api import pull_model
+from camoufler.pipeline import run_standardize
 
 if TYPE_CHECKING:
     import argparse
@@ -36,12 +37,12 @@ def cmd_standardize(
     config: AppConfig,
     logger: logging.Logger,
 ) -> str:
-    """Standardize stdin text using the configured model and prompt."""
+    """Detect prompt type, then rewrite or expand stdin text."""
     model = ensure_small(args.model)
     user_text = read_stdin()
     opts = cpu_options(config.options)
     logger.info("Standardizing with %s", model)
-    return chat_standardize(model, config.system_prompt, user_text, opts)
+    return run_standardize(model, config, user_text, opts)
 
 
 def cmd_standardize_interactive(
@@ -71,7 +72,7 @@ def cmd_standardize_interactive(
             continue
         logger.info("Standardizing with %s", model)
         try:
-            result = chat_standardize(model, config.system_prompt, user_text, opts)
+            result = run_standardize(model, config, user_text, opts)
         except Exception as exc:  # noqa: BLE001 — keep the REPL alive
             print(f"\n#camoufler\nerror: {exc}\n", file=sys.stderr)
             continue

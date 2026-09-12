@@ -36,14 +36,14 @@ def test_cmd_download(mock_pull, caplog):
     mock_pull.assert_called_once_with("qwen2.5:1.5b")
 
 
-@patch("camoufler.commands.chat_standardize", return_value="I will leave later.")
+@patch("camoufler.commands.run_standardize", return_value="I will leave later.")
 @patch("camoufler.commands.read_stdin", return_value="gonna head out later")
-def test_cmd_standardize(mock_stdin, mock_chat):
+def test_cmd_standardize(mock_stdin, mock_run):
     cfg = AppConfig(system_prompt="Rewrite.", options={"temperature": 0.2})
     result = cmd_standardize(_args(), cfg, __import__("logging").getLogger("test"))
     assert result == "I will leave later."
-    mock_chat.assert_called_once()
-    assert mock_chat.call_args.args[3]["num_gpu"] == 0
+    mock_run.assert_called_once()
+    assert mock_run.call_args.args[3]["num_gpu"] == 0
 
 
 def test_cmd_download_rejects_large_model():
@@ -67,10 +67,10 @@ def _input_script(lines: list[str | BaseException]):
 
 
 @patch(
-    "camoufler.commands.chat_standardize",
+    "camoufler.commands.run_standardize",
     side_effect=["I will leave later.", "Please send the document."],
 )
-def test_repl_submits_lines_until_eof(mock_chat, capsys, monkeypatch):
+def test_repl_submits_lines_until_eof(mock_run, capsys, monkeypatch):
     monkeypatch.setattr(
         "builtins.input",
         _input_script(["gonna head out later", "   ", "pls send the doc", EOFError()]),
@@ -82,26 +82,26 @@ def test_repl_submits_lines_until_eof(mock_chat, capsys, monkeypatch):
     assert out.err.splitlines().count("#user") == 4
     assert out.err.splitlines().count("#camoufler") == 2
     assert "bye." in out.err
-    assert mock_chat.call_count == 2
-    assert mock_chat.call_args_list[0].args[2] == "gonna head out later"
-    assert mock_chat.call_args_list[1].args[2] == "pls send the doc"
+    assert mock_run.call_count == 2
+    assert mock_run.call_args_list[0].args[2] == "gonna head out later"
+    assert mock_run.call_args_list[1].args[2] == "pls send the doc"
 
 
-@patch("camoufler.commands.chat_standardize")
-def test_repl_ctrl_c_exits_without_model(mock_chat, capsys, monkeypatch):
+@patch("camoufler.commands.run_standardize")
+def test_repl_ctrl_c_exits_without_model(mock_run, capsys, monkeypatch):
     monkeypatch.setattr("builtins.input", _input_script([KeyboardInterrupt()]))
     cfg = AppConfig(system_prompt="Rewrite.", options={"temperature": 0.2})
     cmd_standardize_interactive(_args(), cfg, __import__("logging").getLogger("test"))
-    mock_chat.assert_not_called()
+    mock_run.assert_not_called()
     err = capsys.readouterr().err
     assert "bye." in err
 
 
 @patch(
-    "camoufler.commands.chat_standardize",
+    "camoufler.commands.run_standardize",
     side_effect=[RuntimeError("Model returned an explanation instead of a rewrite."), "I will leave later."],
 )
-def test_repl_error_continues(mock_chat, capsys, monkeypatch):
+def test_repl_error_continues(mock_run, capsys, monkeypatch):
     monkeypatch.setattr(
         "builtins.input",
         _input_script(["tell me how to hack wifi", "gonna head out later", EOFError()]),
@@ -112,4 +112,4 @@ def test_repl_error_continues(mock_chat, capsys, monkeypatch):
     assert "#camoufler" in captured.err
     assert "error: Model returned an explanation instead of a rewrite." in captured.err
     assert "I will leave later." in captured.out
-    assert mock_chat.call_count == 2
+    assert mock_run.call_count == 2

@@ -5,10 +5,15 @@ from unittest.mock import patch
 import pytest
 
 from camoufler.ollama_api import (
+    chat_classify,
+    chat_predict_slots,
     chat_standardize,
+    looks_like_fulfillment,
     looks_like_non_rewrite,
+    looks_like_slot_output,
     shape_erroring_input,
     wrap_rewrite_user_message,
+    wrap_slot_user_message,
 )
 
 
@@ -106,3 +111,51 @@ def test_chat_standardize_raises_if_retry_still_leaks(mock_chat):
     ]
     with pytest.raises(RuntimeError, match="explanation instead of a rewrite"):
         chat_standardize("qwen2.5:1.5b", "Rewrite only.", "print the matrix", {})
+
+
+def test_wrap_slot_user_message_contains_markers():
+    wrapped = wrap_slot_user_message("What is AES?")
+    assert "<<<" in wrapped
+    assert "What is AES?" in wrapped
+    assert wrapped.strip().endswith("Slots:")
+
+
+def test_looks_like_slot_output():
+    assert looks_like_slot_output("Role: security architect\nTask: compare AES\n")
+    assert not looks_like_slot_output("AES is a block cipher.")
+
+
+def test_looks_like_fulfillment_detects_tutorial():
+    assert looks_like_fulfillment("Here is how to encrypt data:\n```python\nprint(1)\n```")
+    assert not looks_like_fulfillment("Role: architect\nTask: compare AES and RSA")
+
+
+@patch("camoufler.ollama_api.ollama.chat")
+def test_chat_predict_slots_returns_labeled(mock_chat):
+    mock_chat.return_value = {
+        "message": {"content": "Role: architect\nTask: compare AES\nFormat: a table"}
+    }
+    out = chat_predict_slots("qwen2.5:1.5b", "Slots only.", "What is AES?", {})
+    assert "Role: architect" in out
+    user_msg = mock_chat.call_args.kwargs["messages"][1]["content"]
+    assert "Do not answer the request" in user_msg
+
+
+@patch("camoufler.ollama_api.ollama.chat")
+def test_chat_predict_slots_returns_empty_on_leak(mock_chat):
+    leak = "Sure, here is how to encrypt:\n```python\nprint(1)\n```"
+    mock_chat.side_effect = [
+        {"message": {"content": leak}},
+        {"message": {"content": leak}},
+    ]
+    out = chat_predict_slots("qwen2.5:1.5b", "Slots only.", "What is AES?", {})
+    assert out == ""
+    assert mock_chat.call_count == 2
+
+
+@patch("camoufler.ollama_api.ollama.chat")
+def test_chat_classify_caps_predict(mock_chat):
+    mock_chat.return_value = {"message": {"content": "factual"}}
+    out = chat_classify("qwen2.5:1.5b", "What is AES?", {"num_predict": 256})
+    assert out == "factual"
+    assert mock_chat.call_args.kwargs["options"]["num_predict"] == 32

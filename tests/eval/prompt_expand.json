@@ -1,0 +1,42 @@
+[
+  {
+    "input": "Yo what's the diff between sync and async encryption?",
+    "reference": "Yo what's the diff between sync and async encryption? Output a concise comparison."
+  },
+  {
+    "input": "Walk me through how to set up an automated backup pipeline using a cron job and rsync.",
+    "reference": "Walk me through how to set up an automated backup pipeline using a cron job and rsync. Provide numbered setup steps. Ensure each step includes a command to verify success."
+  },
+  {
+    "input": "Draft three short, compelling headlines for a product launch announcing an open-source analytics dashboard.",
+    "reference": "Draft three short, compelling headlines for a product launch announcing an open-source analytics dashboard. Use a clear and professional tone. No hype or clichés. Output a concise list. Keep it brief."
+  },
+  {
+    "input": "Here is a Python function throwing a KeyError; debug what went wrong and show the corrected code.",
+    "reference": "Here is a Python function throwing a KeyError; debug what went wrong and show the corrected code for a general audience. Keep it clear and concise."
+  },
+  {
+    "input": "Condense this 4-page policy briefing into a five-bullet executive summary focusing on compliance risks.",
+    "reference": "Condense this 4-page policy briefing into a five-bullet executive summary focusing on compliance risks for a general audience. Keep fidelity to the source. Do not add facts."
+  },
+  {
+    "input": "Act as an interviewer conducting a technical screen for a systems architect role, and ask me three initial questions.",
+    "reference": "You are an interviewer conducting a technical screen for a systems architect role, and ask me three initial questions. A professional simulation. Act as an interviewer conducting a technical screen for a systems architect role, and ask me three initial questions. Ask one question at a time and wait for the response. Keep the tone professional and rigorous."
+  },
+  {
+    "input": "I need a 4-week study plan to prepare for a cloud certification, studying roughly 6 hours per week.",
+    "reference": "I need a 4-week study plan to prepare for a cloud certification, studying roughly 6 hours per week. Assumptions: a limited time budget. A weekly milestone plan. Success: measurable checkpoints."
+  },
+  {
+    "input": "I want to write an email about my Ninja blender. It stopped working and I am pissed off.",
+    "reference": "I want to write an email about my Ninja blender. It stopped working and I am pissed off. Keep the user's stance; do not switch into the addressee's role. Output a complete email. Preserve the user's emotion and stance."
+  },
+  {
+    "input": "Why not remove Role specific from the prompt?",
+    "reference": "Why not remove Role specific from the prompt?"
+  },
+  {
+    "input": "Write an email about my mixi not working. Express how disappointed I am.",
+    "reference": "Write an email about my mixi not working. Express how disappointed I am. Keep the user's stance; do not switch into the addressee's role. Output a complete email. Preserve the user's emotion and stance."
+  }
+]
