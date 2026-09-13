@@ -21,14 +21,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-m",
         "--model",
-        default="qwen2.5:1.5b",
-        help="Fully qualified Ollama model name (name:tag).",
+        default=None,
+        help="Fully qualified Ollama model name (name:tag). "
+        "Overrides the saved default when set.",
     )
     parser.add_argument(
         "-f",
         "--function",
-        choices=["download", "standardize"],
-        help="Operation: download model or standardize stdin text.",
+        choices=["download", "list", "set", "standardize"],
+        help="Operation. Omit on a terminal to open the menu.",
     )
     parser.add_argument(
         "--verbose",
@@ -46,8 +47,5 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    """Parse CLI arguments and validate required fields."""
-    args = build_parser().parse_args(argv)
-    if args.function is None:
-        build_parser().error("--function / -f is required (download or standardize).")
-    return args
+    """Parse CLI arguments. Function is optional (TTY menu)."""
+    return build_parser().parse_args(argv)

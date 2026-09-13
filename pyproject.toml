@@ -33,7 +33,9 @@ packages = ["src/camoufler"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "src/camoufler/data/config.example.json" = "camoufler/data/config.example.json"
+"src/camoufler/data/remote_1_5b.json" = "camoufler/data/remote_1_5b.json"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 markers = ["integration: requires Ollama"]

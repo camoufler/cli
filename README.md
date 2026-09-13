@@ -15,37 +15,40 @@
 pip install -e .
 ```
 
-Pull a small CPU model (`name:tag`, under 7B):
-
-```text
-camoufler -m qwen2.5:1.5b -f download
-```
-
 ## Running
 
-Piped:
+On a terminal, run `camoufler` with no flags. A menu offers:
+
+1. **download** — pull a small CPU model (prompt defaults to the saved model)
+2. **list** — local and remote **1.5B** Ollama tags (current default is marked)
+3. **set** — save the default 1.5B model used by standardize (`~/.camoufler/settings.json`)
+4. **standardize** — rewrite/expand interactively (Enter to send; Ctrl+C or Ctrl+D to return to the menu)
+
+Until you **set** a model, standardize uses `qwen2.5:1.5b`. Prompt config defaults to `config/config.example2.json` when that file is present.
+
+Piped (flags still work):
 
 ```text
-echo "gonna head out later" | camoufler -m qwen2.5:1.5b -f standardize -c config/config.example.json
+echo "gonna head out later" | camoufler -f standardize
 ```
 
 PowerShell:
 
 ```text
-"gonna head out later" | camoufler -m qwen2.5:1.5b -f standardize -c config\config.example.json
+"gonna head out later" | camoufler -f standardize
 ```
 
-Interactive (Enter to send; Ctrl+C or Ctrl+D to quit):
+Pull a model without the menu:
 
 ```text
-camoufler -m qwen2.5:1.5b -f standardize -c config/config.example.json
+camoufler -f download -m qwen2.5:1.5b
 ```
 
 | Flag | Description |
 |------|-------------|
-| `--model` / `-m` | Ollama name (`name:tag`, default `qwen2.5:1.5b`) |
-| `--function` / `-f` | `download` or `standardize` |
-| `--config` / `-c` | JSON config (required for `standardize`) |
+| `--model` / `-m` | Ollama `name:tag`; overrides the saved default |
+| `--function` / `-f` | `download`, `list`, `set`, or `standardize` (omit on a TTY for the menu) |
+| `--config` / `-c` | JSON config; if omitted, example2 then example then the packaged default |
 | `--version` | Print version |
 | `--verbose` | `0` errors, `1` info, `2` debug |
 

@@ -18,6 +18,29 @@ class AppConfig:
     options: dict[str, Any]
 
 
+def packaged_config_path() -> Path:
+    """Return the config shipped with the package."""
+    return Path(__file__).resolve().parent / "data" / "config.example.json"
+
+
+def resolve_config_path(explicit: str | None) -> Path:
+    """Resolve -c, then cwd example2/example, then the packaged default."""
+    if explicit:
+        return Path(explicit)
+    candidates = [
+        Path("config/config.example2.json"),
+        Path("config/config.example.json"),
+        packaged_config_path(),
+    ]
+    for path in candidates:
+        if path.is_file():
+            return path
+    raise ConfigError(
+        "No config found. Looked for config/config.example2.json, "
+        "config/config.example.json, and the packaged default."
+    )
+
+
 def _require_config_path(path: str | None, required: bool) -> Path | None:
     if path:
         return Path(path)

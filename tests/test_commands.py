@@ -7,12 +7,17 @@ import pytest
 
 from camoufler.commands import (
     cmd_download,
+    cmd_list,
+    cmd_menu,
+    cmd_set,
     cmd_standardize,
     cmd_standardize_interactive,
     read_stdin,
 )
 from camoufler.config import AppConfig
 from camoufler.models import ModelError
+from camoufler.ollama_api import ListedModel
+from camoufler.settings import resolve_model, save_default_model
 
 
 def _args(**kwargs) -> argparse.Namespace:
@@ -113,3 +118,85 @@ def test_repl_error_continues(mock_run, capsys, monkeypatch):
     assert "error: Model returned an explanation instead of a rewrite." in captured.err
     assert "I will leave later." in captured.out
     assert mock_run.call_count == 2
+
+
+def _tmp_settings(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        "camoufler.settings.settings_path", lambda: tmp_path / "settings.json"
+    )
+
+
+@patch("camoufler.commands.list_remote_1_5b_models")
+@patch("camoufler.commands.list_local_models")
+def test_cmd_list_sections(mock_local, mock_remote, capsys, tmp_path, monkeypatch):
+    _tmp_settings(tmp_path, monkeypatch)
+    save_default_model("qwen2.5:1.5b")
+    mock_local.return_value = [
+        ListedModel(name="qwen2.5:1.5b", size=986_000_000, parameter_size="1.5B")
+    ]
+    mock_remote.return_value = ["qwen2.5:1.5b", "qwen2.5-coder:1.5b"]
+    cmd_list(__import__("logging").getLogger("test"))
+    err = capsys.readouterr().err
+    assert "Local 1.5B" in err
+    assert "qwen2.5:1.5b" in err
+    assert "(default)" in err
+    assert "Remote 1.5B" in err
+    assert "qwen2.5-coder:1.5b" in err
+    remote_block = err.split("Remote 1.5B", 1)[1]
+    assert "qwen2.5:1.5b" not in remote_block
+
+
+def test_cmd_set_requires_model_when_not_prompting():
+    with pytest.raises(ValueError, match="required"):
+        cmd_set(_args(model=None), __import__("logging").getLogger("test"), prompt=False)
+
+
+def test_cmd_set_saves_default(tmp_path, monkeypatch, capsys):
+    _tmp_settings(tmp_path, monkeypatch)
+    cmd_set(
+        _args(model="qwen2.5-coder:1.5b"),
+        __import__("logging").getLogger("test"),
+        prompt=False,
+    )
+    assert resolve_model(None) == "qwen2.5-coder:1.5b"
+    assert "Default model set to qwen2.5-coder:1.5b" in capsys.readouterr().err
+
+
+@patch("camoufler.commands.cmd_list")
+def test_menu_list_then_quit(mock_list, capsys, monkeypatch):
+    monkeypatch.setattr("builtins.input", _input_script(["2", "q"]))
+    cmd_menu(_args(model=None, config=None), __import__("logging").getLogger("test"))
+    mock_list.assert_called_once()
+    err = capsys.readouterr().err
+    assert "1) download" in err
+    assert "2) list" in err
+    assert "3) set" in err
+    assert "4) standardize" in err
+    assert "bye." in err
+
+
+@patch("camoufler.commands.cmd_download")
+def test_menu_download_keeps_default_model(mock_download, monkeypatch):
+    monkeypatch.setattr("builtins.input", _input_script(["1", "", "q"]))
+    cmd_menu(
+        _args(model="qwen2.5:1.5b", config=None),
+        __import__("logging").getLogger("test"),
+    )
+    mock_download.assert_called_once()
+    assert mock_download.call_args.args[0].model == "qwen2.5:1.5b"
+
+
+@patch("camoufler.commands.cmd_standardize_interactive")
+@patch("camoufler.commands.load_config")
+@patch("camoufler.commands.resolve_config_path")
+def test_menu_standardize_returns_to_menu(
+    mock_resolve, mock_load, mock_repl, monkeypatch, tmp_path
+):
+    _tmp_settings(tmp_path, monkeypatch)
+    save_default_model("qwen2.5-coder:1.5b")
+    mock_load.return_value = AppConfig(system_prompt="Rewrite.", options={})
+    monkeypatch.setattr("builtins.input", _input_script(["4", "q"]))
+    cmd_menu(_args(model=None, config=None), __import__("logging").getLogger("test"))
+    mock_resolve.assert_called_once()
+    mock_repl.assert_called_once()
+    assert mock_repl.call_args.args[0].model == "qwen2.5-coder:1.5b"

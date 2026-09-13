@@ -9,17 +9,32 @@ from camoufler.models import ModelError
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Parse args, dispatch download or standardize, return exit code."""
+    """Parse args, dispatch a command or the TTY menu, return exit code."""
     try:
         ns = args.parse_args(argv)
         logger = logutil.setup_logging(ns.verbose)
+        if ns.function is None:
+            if not sys.stdin.isatty():
+                raise ValueError(
+                    "Run camoufler on a terminal for the menu, or pass -f "
+                    "(download, list, set, standardize)."
+                )
+            commands.cmd_menu(ns, logger)
+            return 0
         if ns.function == "download":
             cfg = config.load_config(ns.config, required=False)
             if cfg:
                 logger.debug("Config loaded (unused for download).")
             commands.cmd_download(ns, logger)
             return 0
-        cfg = config.load_config(ns.config, required=True)
+        if ns.function == "list":
+            commands.cmd_list(logger)
+            return 0
+        if ns.function == "set":
+            commands.cmd_set(ns, logger, prompt=sys.stdin.isatty())
+            return 0
+        cfg_path = config.resolve_config_path(ns.config)
+        cfg = config.load_config(str(cfg_path), required=True)
         assert cfg is not None
         if sys.stdin.isatty():
             commands.cmd_standardize_interactive(ns, cfg, logger)

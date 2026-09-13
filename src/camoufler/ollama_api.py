@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import re
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 import ollama
+
+from camoufler.models import is_1_5b_model
 
 logger = logging.getLogger("camoufler")
 
@@ -143,6 +150,24 @@ def looks_like_slot_output(output: str) -> bool:
     return bool(re.search(r"(?m)^[A-Za-z][A-Za-z ]{1,24}:\s+\S", output))
 
 
+_SEARCH_URL = "https://ollama.com/search?q=1.5b"
+_LIB_HREF = re.compile(
+    r'href="(?:https://ollama\.com)?/library/([^"?#]+)"',
+    re.IGNORECASE,
+)
+_SIZE_BADGE_1_5 = re.compile(r"(?i)>\s*1\.5b\s*<")
+_REMOTE_CATALOG = Path(__file__).resolve().parent / "data" / "remote_1_5b.json"
+
+
+@dataclass(frozen=True)
+class ListedModel:
+    """A local Ollama model with optional size metadata."""
+
+    name: str
+    size: int | None = None
+    parameter_size: str | None = None
+
+
 def pull_model(model: str) -> None:
     """Download model via ollama.pull, logging progress when available."""
     logger.info("Pulling model %s ...", model)
@@ -151,6 +176,114 @@ def pull_model(model: str) -> None:
         status = chunk.get("status", "")
         if status:
             logger.info("%s", status)
+
+
+def _item_get(item: Any, key: str) -> Any:
+    if isinstance(item, dict):
+        return item.get(key)
+    return getattr(item, key, None)
+
+
+def _local_model_name(item: Any) -> str:
+    raw = _item_get(item, "model") or _item_get(item, "name") or ""
+    return str(raw).strip()
+
+
+def _local_model_size(item: Any) -> int | None:
+    raw = _item_get(item, "size")
+    try:
+        return int(raw) if raw is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _local_parameter_size(item: Any) -> str | None:
+    details = _item_get(item, "details")
+    if details is None:
+        return None
+    raw = _item_get(details, "parameter_size")
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    return text or None
+
+
+def list_local_models() -> list[ListedModel]:
+    """Return installed 1.5B Ollama models."""
+    response = ollama.list()
+    raw_models = (
+        response.get("models")
+        if isinstance(response, dict)
+        else getattr(response, "models", None)
+    )
+    listed: list[ListedModel] = []
+    for item in raw_models or []:
+        name = _local_model_name(item)
+        if not name or not is_1_5b_model(name):
+            continue
+        listed.append(
+            ListedModel(
+                name=name,
+                size=_local_model_size(item),
+                parameter_size=_local_parameter_size(item),
+            )
+        )
+    listed.sort(key=lambda item: item.name.lower())
+    return listed
+
+
+def load_remote_catalog() -> list[str]:
+    """Return packaged official 1.5B library tags."""
+    try:
+        data = json.loads(_REMOTE_CATALOG.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return ["qwen2.5:1.5b"]
+    if not isinstance(data, list):
+        return ["qwen2.5:1.5b"]
+    names = [str(item).strip() for item in data if str(item).strip()]
+    return [name for name in names if is_1_5b_model(name)]
+
+
+def parse_remote_1_5b_html(html: str) -> list[str]:
+    """Extract name:1.5b tags from an ollama.com search HTML page."""
+    found: set[str] = set()
+    for chunk in re.split(r"<li\b", html, flags=re.IGNORECASE):
+        if not _SIZE_BADGE_1_5.search(chunk):
+            continue
+        match = _LIB_HREF.search(chunk)
+        if not match:
+            continue
+        raw = match.group(1).strip().strip("/")
+        if not raw:
+            continue
+        fq = raw if ":" in raw else f"{raw}:1.5b"
+        if is_1_5b_model(fq):
+            found.add(fq)
+    return sorted(found, key=str.lower)
+
+
+def _fetch_search_html(url: str = _SEARCH_URL) -> str:
+    request = Request(
+        url,
+        headers={"User-Agent": "camoufler/0.1 (+https://github.com/camoufler/cli)"},
+    )
+    with urlopen(request, timeout=10) as response:  # noqa: S310 — fixed https URL
+        return response.read().decode("utf-8", errors="replace")
+
+
+def list_remote_1_5b_models(*, html: str | None = None) -> list[str]:
+    """Remote 1.5B library tags; packaged catalog if fetch/parse fails."""
+    if html is None:
+        try:
+            html = _fetch_search_html()
+        except (URLError, TimeoutError, OSError, ValueError) as exc:
+            logger.info("Remote search failed; using packaged catalog (%s)", exc)
+            return load_remote_catalog()
+    parsed = parse_remote_1_5b_html(html)
+    if parsed:
+        return parsed
+    logger.info("Remote search returned no 1.5B tags; using packaged catalog.")
+    return load_remote_catalog()
 
 
 def _chat_once(

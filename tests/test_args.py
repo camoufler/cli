@@ -19,6 +19,14 @@ def test_parse_download_args():
     assert ns.verbose == 1
 
 
-def test_function_required():
-    with __import__("pytest").raises(SystemExit):
-        parse_args([])
+def test_parse_empty_args_opens_menu_path():
+    ns = parse_args([])
+    assert ns.function is None
+    assert ns.model is None
+
+
+def test_parse_list_and_set():
+    assert parse_args(["-f", "list"]).function == "list"
+    ns = parse_args(["-f", "set", "-m", "qwen2.5-coder:1.5b"])
+    assert ns.function == "set"
+    assert ns.model == "qwen2.5-coder:1.5b"

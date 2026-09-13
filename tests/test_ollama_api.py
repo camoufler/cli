@@ -4,13 +4,20 @@ from unittest.mock import patch
 
 import pytest
 
+from urllib.error import URLError
+
 from camoufler.ollama_api import (
+    ListedModel,
     chat_classify,
     chat_predict_slots,
     chat_standardize,
+    list_local_models,
+    list_remote_1_5b_models,
+    load_remote_catalog,
     looks_like_fulfillment,
     looks_like_non_rewrite,
     looks_like_slot_output,
+    parse_remote_1_5b_html,
     shape_erroring_input,
     wrap_rewrite_user_message,
     wrap_slot_user_message,
@@ -159,3 +166,65 @@ def test_chat_classify_caps_predict(mock_chat):
     out = chat_classify("qwen2.5:1.5b", "What is AES?", {"num_predict": 256})
     assert out == "factual"
     assert mock_chat.call_args.kwargs["options"]["num_predict"] == 32
+
+
+_SAMPLE_SEARCH_HTML = """
+<ul>
+<li>
+  <a href="/library/deepscaler">deepscaler</a>
+  <span x-test-size>1.5b</span>
+</li>
+<li>
+  <a href="/library/starcoder2">starcoder2</a>
+  <span x-test-size>3b</span>
+  <span x-test-size>7b</span>
+</li>
+<li>
+  <a href="/library/qwen2.5">qwen2.5</a>
+  <span x-test-size>0.5b</span>
+  <span x-test-size>1.5b</span>
+  <span x-test-size>3b</span>
+</li>
+</ul>
+"""
+
+
+def test_parse_remote_1_5b_html_uses_size_badges():
+    names = parse_remote_1_5b_html(_SAMPLE_SEARCH_HTML)
+    assert names == ["deepscaler:1.5b", "qwen2.5:1.5b"]
+
+
+@patch("camoufler.ollama_api.ollama.list")
+def test_list_local_models_filters_to_1_5b(mock_list):
+    mock_list.return_value = {
+        "models": [
+            {
+                "model": "qwen2.5:1.5b",
+                "size": 986000000,
+                "details": {"parameter_size": "1.5B"},
+            },
+            {"name": "llama3.2:1b", "size": 1},
+            {"model": "qwen2.5:7b"},
+        ]
+    }
+    listed = list_local_models()
+    assert listed == [
+        ListedModel(name="qwen2.5:1.5b", size=986000000, parameter_size="1.5B")
+    ]
+
+
+def test_list_remote_uses_html_when_parseable():
+    names = list_remote_1_5b_models(html=_SAMPLE_SEARCH_HTML)
+    assert names == ["deepscaler:1.5b", "qwen2.5:1.5b"]
+
+
+def test_list_remote_falls_back_to_catalog_on_empty_html():
+    names = list_remote_1_5b_models(html="<html></html>")
+    assert "qwen2.5:1.5b" in names
+    assert names == load_remote_catalog()
+
+
+@patch("camoufler.ollama_api._fetch_search_html", side_effect=URLError("offline"))
+def test_list_remote_falls_back_on_fetch_error(_mock_fetch):
+    names = list_remote_1_5b_models()
+    assert names == load_remote_catalog()
